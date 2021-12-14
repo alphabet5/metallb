@@ -174,6 +174,46 @@ There are two main reasons to colocate services in this fashion: to
 work around a Kubernetes limitation, and to work with limited IP
 addresses.
 
+Example configuration for two services you want to share the same ip address.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: haproxy-service
+  namespace: default
+  annotations:
+    metallb.universe.tf/allow-shared-ip: "key-to-share-1.2.3.4"
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 1.2.3.4
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+  selector:
+    app: haproxy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: default
+  annotations:
+    metallb.universe.tf/allow-shared-ip: "key-to-share-1.2.3.4"
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 1.2.3.4
+  ports:
+    - name: http
+      protocol: TCP
+      port: 81
+      targetPort: 8080
+  selector:
+    app: nginx
+```
+
 [Kubernetes does not currently allow multiprotocol LoadBalancer services](https://github.com/kubernetes/kubernetes/issues/23880). This
 would normally make it impossible to run services like DNS, because
 they have to listen on both TCP and UDP. To work around this
